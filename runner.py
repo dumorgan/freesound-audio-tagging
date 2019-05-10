@@ -81,145 +81,150 @@ import inference
 import model
 import train
 
+
 def parse_flags(argv):
-  parser = argparse.ArgumentParser(description='DCASE 2019 Task 2 Baseline')
+    parser = argparse.ArgumentParser(description='DCASE 2019 Task 2 Baseline')
 
-  # Flags common to all modes.
-  all_modes_group = parser.add_argument_group('Flags common to all modes')
-  all_modes_group.add_argument(
-      '--mode', type=str, choices=['train', 'eval', 'inference'], required=True,
-      help='Run one of training, evaluation, or inference.')
-  all_modes_group.add_argument(
-      '--model', type=str, choices=['mobilenet-v1'],
-      default='mobilenet-v1', required=True,
-      help='Name of a model architecture. Current options: mobilenet-v1.')
-  all_modes_group.add_argument(
-      '--hparams', type=str, default='',
-      help='Model hyperparameters in comma-separated name=value format.')
-  all_modes_group.add_argument(
-      '--class_map_path', type=str, default='', required=True,
-      help='Path to CSV file containing map between class index and name.')
+    # Flags common to all modes.
+    all_modes_group = parser.add_argument_group('Flags common to all modes')
+    all_modes_group.add_argument(
+        '--mode', type=str, choices=['train', 'eval', 'inference'], required=True,
+        help='Run one of training, evaluation, or inference.')
+    all_modes_group.add_argument(
+        '--model', type=str, choices=['mobilenet-v1'],
+        default='mobilenet-v1', required=True,
+        help='Name of a model architecture. Current options: mobilenet-v1.')
+    all_modes_group.add_argument(
+        '--hparams', type=str, default='',
+        help='Model hyperparameters in comma-separated name=value format.')
+    all_modes_group.add_argument(
+        '--class_map_path', type=str, default='', required=True,
+        help='Path to CSV file containing map between class index and name.')
 
-  # Flags for training only.
-  training_group = parser.add_argument_group('Flags for training only')
-  training_group.add_argument(
-      '--train_clip_dir', type=str, default='',
-      help='Path to directory containing training clips.')
-  training_group.add_argument(
-      '--train_csv_path', type=str, default='',
-      help='Path to CSV file containing training clip filenames and labels.')
-  training_group.add_argument(
-      '--epoch_num_batches', type=int, default=0,
-      help='Number of batches in an epoch.')
-  training_group.add_argument(
-      '--warmstart_checkpoint', type=str, default='',
-      help='Path to a model checkpoint to use for warm-started training.')
-  training_group.add_argument(
-      '--warmstart_include_scopes', type=str, default='',
-      help='Comma-separated list of variable scopes to include when loading '
-      'the warm-start checkpoint.')
-  training_group.add_argument(
-      '--warmstart_exclude_scopes', type=str, default='',
-      help='Comma-separated list of variable scopes to exclude when loading '
-      'the warm-start checkpoint.')
+    # Flags for training only.
+    training_group = parser.add_argument_group('Flags for training only')
+    training_group.add_argument(
+        '--train_clip_dir', type=str, default='',
+        help='Path to directory containing training clips.')
+    training_group.add_argument(
+        '--train_csv_path', type=str, default='',
+        help='Path to CSV file containing training clip filenames and labels.')
+    training_group.add_argument(
+        '--epoch_num_batches', type=int, default=0,
+        help='Number of batches in an epoch.')
+    training_group.add_argument(
+        '--warmstart_checkpoint', type=str, default='',
+        help='Path to a model checkpoint to use for warm-started training.')
+    training_group.add_argument(
+        '--warmstart_include_scopes', type=str, default='',
+        help='Comma-separated list of variable scopes to include when loading '
+             'the warm-start checkpoint.')
+    training_group.add_argument(
+        '--warmstart_exclude_scopes', type=str, default='',
+        help='Comma-separated list of variable scopes to exclude when loading '
+             'the warm-start checkpoint.')
 
-  # Flags for training and evaluation.
-  train_eval_group = parser.add_argument_group('Flags for training and eval')
-  train_eval_group.add_argument(
-      '--train_dir', type=str, default='',
-      help='Path to a directory which will hold model checkpoints and other outputs.')
+    # Flags for training and evaluation.
+    train_eval_group = parser.add_argument_group('Flags for training and eval')
+    train_eval_group.add_argument(
+        '--train_dir', type=str, default='',
+        help='Path to a directory which will hold model checkpoints and other outputs.')
 
-  # Flags for evaluation only.
-  eval_group = parser.add_argument_group('Flags for evaluation only')
-  eval_group.add_argument(
-      '--eval_clip_dir', type=str, default='',
-      help='Path to directory containing evaluation clips.')
-  eval_group.add_argument(
-      '--eval_csv_path', type=str, default='',
-      help='Path to CSV file containing evaluation clip filenames and labels.')
-  eval_group.add_argument(
-      '--eval_dir', type=str, default='',
-      help='Path to a directory holding eval results.')
+    # Flags for evaluation only.
+    eval_group = parser.add_argument_group('Flags for evaluation only')
+    eval_group.add_argument(
+        '--eval_clip_dir', type=str, default='',
+        help='Path to directory containing evaluation clips.')
+    eval_group.add_argument(
+        '--eval_csv_path', type=str, default='',
+        help='Path to CSV file containing evaluation clip filenames and labels.')
+    eval_group.add_argument(
+        '--eval_dir', type=str, default='',
+        help='Path to a directory holding eval results.')
 
-  # Flags for inference only.
-  inference_group = parser.add_argument_group('Flags for inference only')
-  inference_group.add_argument(
-      '--inference_checkpoint', type=str, default='',
-      help='Path to a model checkpoint to use for inference.')
-  inference_group.add_argument(
-      '--inference_clip_dir', type=str, default='',
-      help='Path to directory containing test clips.')
-  inference_group.add_argument(
-      '--predictions_csv_path', type=str, default='',
-      help='Path to a CSV file in which to store predictions.')
+    # Flags for inference only.
+    inference_group = parser.add_argument_group('Flags for inference only')
+    inference_group.add_argument(
+        '--inference_checkpoint', type=str, default='',
+        help='Path to a model checkpoint to use for inference.')
+    inference_group.add_argument(
+        '--inference_clip_dir', type=str, default='',
+        help='Path to directory containing test clips.')
+    inference_group.add_argument(
+        '--predictions_csv_path', type=str, default='',
+        help='Path to a CSV file in which to store predictions.')
 
-  flags, rest_argv = parser.parse_known_args(argv)
+    flags, rest_argv = parser.parse_known_args(argv)
 
-  # Additional per-mode validation.
-  try:
-    if flags.mode == 'train':
-      assert flags.train_clip_dir, 'Must specify --train_clip_dir'
-      assert flags.train_csv_path, 'Must specify --train_csv_path'
-      assert flags.train_dir, 'Must specify --train_dir'
-      if 'lrdecay' in flags.hparams:
-        assert flags.epoch_num_batches > 0, (
-            'When using hparams.lrdecay, must specify --epoch_num_batches')
-      if 'warmstart' in flags.hparams:
-        assert flags.warmstart_checkpoint, (
-            'When using hparams.warmstart, must specify --warmstart_checkpoint')
+    # Additional per-mode validation.
+    try:
+        if flags.mode == 'train':
+            assert flags.train_clip_dir, 'Must specify --train_clip_dir'
+            assert flags.train_csv_path, 'Must specify --train_csv_path'
+            assert flags.train_dir, 'Must specify --train_dir'
+            if 'lrdecay' in flags.hparams:
+                assert flags.epoch_num_batches > 0, (
+                    'When using hparams.lrdecay, must specify --epoch_num_batches')
+            if 'warmstart' in flags.hparams:
+                assert flags.warmstart_checkpoint, (
+                    'When using hparams.warmstart, must specify --warmstart_checkpoint')
 
-    elif flags.mode == 'eval':
-      assert flags.eval_clip_dir, 'Must specify --eval_clip_dir'
-      assert flags.eval_csv_path, 'Must specify --eval_csv_path'
-      assert flags.eval_dir, 'Must specify --eval_dir'
-      assert flags.train_dir, 'Must specify --train_dir'
+        elif flags.mode == 'eval':
+            assert flags.eval_clip_dir, 'Must specify --eval_clip_dir'
+            assert flags.eval_csv_path, 'Must specify --eval_csv_path'
+            assert flags.eval_dir, 'Must specify --eval_dir'
+            assert flags.train_dir, 'Must specify --train_dir'
 
-    else:
-      assert flags.mode == 'inference'
-      assert flags.inference_checkpoint, 'Must specify --inference_checkpoint'
-      assert flags.inference_clip_dir, 'Must specify --inference_clip_dir'
-      assert flags.predictions_csv_path, 'Must specify --predictions_csv_path'
-  except AssertionError as e:
-    print('\nError: ', e, '\n', file=sys.stderr)
-    parser.print_help(file=sys.stderr)
-    sys.exit(1)
+        else:
+            assert flags.mode == 'inference'
+            assert flags.inference_checkpoint, 'Must specify --inference_checkpoint'
+            assert flags.inference_clip_dir, 'Must specify --inference_clip_dir'
+            assert flags.predictions_csv_path, 'Must specify --predictions_csv_path'
+    except AssertionError as e:
+        print('\nError: ', e, '\n', file=sys.stderr)
+        parser.print_help(file=sys.stderr)
+        sys.exit(1)
 
-  return flags, rest_argv
+    return flags, rest_argv
+
 
 flags = None
 
+
 def main(argv):
-  hparams = model.parse_hparams(flags.hparams)
+    hparams = model.parse_hparams(flags.hparams)
 
-  if flags.mode == 'train':
-    def split_csv(scopes):
-      return scopes.split(',') if scopes else None
-    train.train(model_name=flags.model, hparams=hparams,
-                class_map_path=flags.class_map_path,
-                train_csv_path=flags.train_csv_path,
-                train_clip_dir=flags.train_clip_dir,
-                train_dir=flags.train_dir,
-                epoch_batches=flags.epoch_num_batches,
-                warmstart_checkpoint=flags.warmstart_checkpoint,
-                warmstart_include_scopes=split_csv(flags.warmstart_include_scopes),
-                warmstart_exclude_scopes=split_csv(flags.warmstart_exclude_scopes))
+    if flags.mode == 'train':
+        def split_csv(scopes):
+            return scopes.split(',') if scopes else None
 
-  elif flags.mode == 'eval':
-    evaluation.evaluate(model_name=flags.model, hparams=hparams,
-                        class_map_path=flags.class_map_path,
-                        eval_csv_path=flags.eval_csv_path,
-                        eval_clip_dir=flags.eval_clip_dir,
-                        eval_dir=flags.eval_dir,
-                        train_dir=flags.train_dir)
+        train.train(model_name=flags.model, hparams=hparams,
+                    class_map_path=flags.class_map_path,
+                    train_csv_path=flags.train_csv_path,
+                    train_clip_dir=flags.train_clip_dir,
+                    train_dir=flags.train_dir,
+                    epoch_batches=flags.epoch_num_batches,
+                    warmstart_checkpoint=flags.warmstart_checkpoint,
+                    warmstart_include_scopes=split_csv(flags.warmstart_include_scopes),
+                    warmstart_exclude_scopes=split_csv(flags.warmstart_exclude_scopes))
 
-  else:
-    assert flags.mode == 'inference'
-    inference.predict(model_name=flags.model, hparams=hparams,
-                      class_map_path=flags.class_map_path,
-                      inference_clip_dir=flags.inference_clip_dir,
-                      inference_checkpoint=flags.inference_checkpoint,
-                      predictions_csv_path=flags.predictions_csv_path)
+    elif flags.mode == 'eval':
+        evaluation.evaluate(model_name=flags.model, hparams=hparams,
+                            class_map_path=flags.class_map_path,
+                            eval_csv_path=flags.eval_csv_path,
+                            eval_clip_dir=flags.eval_clip_dir,
+                            eval_dir=flags.eval_dir,
+                            train_dir=flags.train_dir)
+
+    else:
+        assert flags.mode == 'inference'
+        inference.predict(model_name=flags.model, hparams=hparams,
+                          class_map_path=flags.class_map_path,
+                          inference_clip_dir=flags.inference_clip_dir,
+                          inference_checkpoint=flags.inference_checkpoint,
+                          predictions_csv_path=flags.predictions_csv_path)
+
 
 if __name__ == '__main__':
-  flags, sys.argv = parse_flags(sys.argv)
-  tf.app.run(main)
+    flags, sys.argv = parse_flags(sys.argv)
+    tf.app.run(main)
