@@ -32,13 +32,15 @@ def train(model_name=None, hparams=None, class_map_path=None, train_csv_path=Non
         # Define our own checkpoint saving hook, instead of using the built-in one,
         # so that we can specify additional checkpoint retention settings.
         saver = tf.train.Saver(
-            max_to_keep=10, keep_checkpoint_every_n_hours=0.25)
+            max_to_keep=1000, keep_checkpoint_every_n_hours=0.25)
         saver_hook = tf.train.CheckpointSaverHook(
             save_steps=100, checkpoint_dir=train_dir, saver=saver)
 
         summary_op = tf.summary.merge_all()
         summary_hook = tf.train.SummarySaverHook(
             save_steps=10, output_dir=train_dir, summary_op=summary_op)
+
+        stop_hook = tf.train.StopAtStepHook(num_steps=10000)
 
         if hparams.warmstart:
             var_include_scopes = warmstart_include_scopes
@@ -66,7 +68,7 @@ def train(model_name=None, hparams=None, class_map_path=None, train_csv_path=Non
 
         config = tf.ConfigProto(device_count={"GPU": 1}, log_device_placement=True)
         config.gpu_options.allow_growth = True
-        with tf.train.SingularMonitoredSession(hooks=[saver_hook, summary_hook],
+        with tf.train.SingularMonitoredSession(hooks=[saver_hook, summary_hook, stop_hook],
                                                checkpoint_dir=train_dir,
                                                scaffold=scaffold,
                                                config=config) as sess:

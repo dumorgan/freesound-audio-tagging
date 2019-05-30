@@ -3,6 +3,7 @@
 # MODEL=mobilenet-v1
 MODEL=xception
 
+tensorboard --logdir . &
 
 python runner.py --mode train --model $MODEL  --class_map_path class_map.csv --train_clip_dir data --train_csv_path train_curated.csv --train_dir train/
 

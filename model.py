@@ -7,6 +7,8 @@ import tensorflow as tf
 
 slim = tf.contrib.slim
 
+from xception import xception_71
+
 
 def parse_hparams(flag_hparams):
     # Default values for all hyperparameters.
@@ -171,6 +173,8 @@ def define_model(model_name=None, features=None, labels=None, num_classes=None,
         # Define the model without the classifier layer.
         if model_name == 'mobilenet-v1':
             embedding = define_mobilenet_v1(features=features, hparams=hparams)
+        elif model_name == "xception":
+            embedding = define_xception(features=features, hparams=hparams)
         else:
             raise NotImplementedError('Unknown model %r' % model_name)
 
@@ -214,3 +218,10 @@ def define_model(model_name=None, features=None, labels=None, num_classes=None,
         train_op = None
 
     return global_step, prediction, loss, train_op
+
+def define_xception(features=None, hparams=None, num_classes = None):
+    """Defines XCeption CNN, without the classifier layer."""
+    formated_features = tf.expand_dims(features, axis=3)  
+    net, endpoints = xception_71(formated_features, num_classes)
+    #net = slim.conv2d(net, 1024, kernel_size=[1, 2], stride=1)                
+    return tf.contrib.layers.flatten(net)

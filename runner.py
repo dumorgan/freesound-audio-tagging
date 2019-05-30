@@ -91,7 +91,7 @@ def parse_flags(argv):
         '--mode', type=str, choices=['train', 'eval', 'inference'], required=True,
         help='Run one of training, evaluation, or inference.')
     all_modes_group.add_argument(
-        '--model', type=str, choices=['mobilenet-v1'],
+        '--model', type=str, choices=['mobilenet-v1','xception'],
         default='mobilenet-v1', required=True,
         help='Name of a model architecture. Current options: mobilenet-v1.')
     all_modes_group.add_argument(
